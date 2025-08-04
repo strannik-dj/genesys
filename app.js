@@ -1,4 +1,4 @@
-// v2
+//v2
 (function (genesys) {
   'use strict';
 
