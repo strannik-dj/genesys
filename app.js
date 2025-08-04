@@ -1,12 +1,8 @@
-// app.js
 (function (genesys) {
   'use strict';
 
-  // Инициализация приложения
   genesys.app.init({
-    // Укажите Client App ID из шага 2
-    appId: 'YOUR_CLIENT_APP_ID',
-    // Опционально: настройки отображения
+    appId: 'YOUR_CLIENT_APP_ID', // Замените на ваш Client App ID
     ui: {
       visible: true,
       width: '300px',
@@ -15,31 +11,45 @@
   }).then(function (app) {
     console.log('Приложение успешно инициализировано');
 
-    // Подписка на события разговоров
+    // Подписка на событие изменения состояния разговора
     app.subscribe('conversationState', function (data) {
-      // Проверяем, что оператор ответил на вызов
+      console.log('Событие conversationState:', data);
+
+      // Проверяем, что разговор активен и есть агент
       if (data.state === 'connected' && data.participants.some(p => p.purpose === 'agent')) {
-        // Извлекаем номера
-        const participants = data.participants;
+        console.log('Разговор подключён, ищем номера...');
+
         let calledNumber = '';
         let callingNumber = '';
 
-        participants.forEach(participant => {
-          if (participant.purpose === 'external' && participant.direction === 'inbound') {
-            callingNumber = participant.address; // Номер, с которого звонили (ANI)
+        // Извлекаем номера из участников
+        data.participants.forEach(participant => {
+          if (participant.direction === 'inbound' && participant.purpose === 'external') {
+            callingNumber = participant.address || participant.addressFrom; // ANI
+            console.log('Найден callingNumber:', callingNumber);
           }
-          if (participant.purpose === 'agent' || participant.direction === 'inbound') {
-            calledNumber = participant.addressTo || participant.address; // Номер, на который звонили (DNIS)
+          if (participant.direction === 'inbound' && participant.purpose === 'acd') {
+            calledNumber = participant.addressTo || participant.address; // DNIS
+            console.log('Найден calledNumber:', calledNumber);
           }
         });
 
-        // Формируем динамический URL
-        const dynamicUrl = `https://app-eu.richcall.io/agent?phone=${encodeURIComponent(calledNumber)}&phone=${encodeURIComponent(callingNumber)}`;
+        // Проверка, найдены ли номера
+        if (callingNumber && calledNumber) {
+          // Формируем динамический URL
+          const dynamicUrl = `https://app-eu.richcall.io/agent?phone=${encodeURIComponent(calledNumber)}&phone=${encodeURIComponent(callingNumber)}`;
+          console.log('Сформирован URL:', dynamicUrl);
 
-        // Открываем URL в новой вкладке
-        window.open(dynamicUrl, '_blank');
-
-        console.log('Открыт URL:', dynamicUrl);
+          // Открываем URL в новой вкладке
+          try {
+            window.open(dynamicUrl, '_blank');
+            console.log('URL успешно открыт');
+          } catch (error) {
+            console.error('Ошибка при открытии URL:', error);
+          }
+        } else {
+          console.warn('Не удалось найти номера для формирования URL');
+        }
       }
     });
 
