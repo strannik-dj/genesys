@@ -1,16 +1,17 @@
-//v3
+//v4
 (function (genesys) {
   'use strict';
-
+  console.log('[RichCall] Начинаю инициализацию приложения');
   genesys.app.init({
-    appId: 'YOUR_CLIENT_APP_ID', // Замените на ваш Client App ID
-    ui: {
-      visible: true,
-      width: '300px',
-      height: '200px'
-    }
+    appId: '21db63cf-646d-4fff-b24f-ecc51b6af1f8', // Замените на ваш Client ID
+    ui: { visible: true, width: '300px', height: '200px' }
   }).then(function (app) {
     console.log('[RichCall] Приложение успешно инициализировано');
+    // ... остальной код ...
+  }).catch(function (error) {
+    console.error('[RichCall] Ошибка инициализации:', error);
+  });
+})(window.genesys || {});
 
     // Подписка на событие изменения состояния разговора
     app.subscribe('conversationState', function (data) {
