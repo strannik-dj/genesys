@@ -1,4 +1,4 @@
-//v2
+//v3
 (function (genesys) {
   'use strict';
 
@@ -10,15 +10,15 @@
       height: '200px'
     }
   }).then(function (app) {
-    console.log('Приложение успешно инициализировано');
+    console.log('[RichCall] Приложение успешно инициализировано');
 
     // Подписка на событие изменения состояния разговора
     app.subscribe('conversationState', function (data) {
-      console.log('Событие conversationState:', data);
+      console.log('[RichCall] Событие conversationState:', data);
 
       // Проверяем, что разговор активен и есть агент
       if (data.state === 'connected' && data.participants.some(p => p.purpose === 'agent')) {
-        console.log('Разговор подключён, ищем номера...');
+        console.log('[RichCall] Разговор подключён, ищем номера...');
 
         let calledNumber = '';
         let callingNumber = '';
@@ -26,12 +26,12 @@
         // Извлекаем номера из участников
         data.participants.forEach(participant => {
           if (participant.direction === 'inbound' && participant.purpose === 'external') {
-            callingNumber = participant.address || participant.addressFrom; // ANI
-            console.log('Найден callingNumber:', callingNumber);
+            callingNumber = participant.address || participant.addressFrom;
+            console.log('[RichCall] Найден callingNumber:', callingNumber);
           }
           if (participant.direction === 'inbound' && participant.purpose === 'acd') {
-            calledNumber = participant.addressTo || participant.address; // DNIS
-            console.log('Найден calledNumber:', calledNumber);
+            calledNumber = participant.addressTo || participant.address;
+            console.log('[RichCall] Найден calledNumber:', calledNumber);
           }
         });
 
@@ -39,27 +39,27 @@
         if (callingNumber && calledNumber) {
           // Формируем динамический URL
           const dynamicUrl = `https://app-eu.richcall.io/agent?phone=${encodeURIComponent(calledNumber)}&phone=${encodeURIComponent(callingNumber)}`;
-          console.log('Сформирован URL:', dynamicUrl);
+          console.log('[RichCall] Сформирован URL:', dynamicUrl);
 
           // Открываем URL в новой вкладке
           try {
             window.open(dynamicUrl, '_blank');
-            console.log('URL успешно открыт');
+            console.log('[RichCall] URL успешно открыт');
           } catch (error) {
-            console.error('Ошибка при открытии URL:', error);
+            console.error('[RichCall] Ошибка при открытии URL:', error);
           }
         } else {
-          console.warn('Не удалось найти номера для формирования URL');
+          console.warn('[RichCall] Не удалось найти номера для формирования URL');
         }
       }
     });
 
     // Обработка ошибок
     app.on('error', function (error) {
-      console.error('Ошибка приложения:', error);
+      console.error('[RichCall] Ошибка приложения:', error);
     });
   }).catch(function (error) {
-    console.error('Ошибка инициализации:', error);
+    console.error('[RichCall] Ошибка инициализации:', error);
   });
 
 })(window.genesys || {});
